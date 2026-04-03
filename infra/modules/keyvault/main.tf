@@ -20,16 +20,6 @@ resource "azurerm_key_vault" "this" {
     secret_permissions      = ["Get", "List", "Set", "Delete", "Purge"]
     certificate_permissions = ["Get", "List", "Create", "Delete", "Update"]
   }
-
-  # Grant each Container App managed identity read access
-  dynamic "access_policy" {
-    for_each = var.container_app_identity_object_ids
-    content {
-      tenant_id          = data.azurerm_client_config.current.tenant_id
-      object_id          = access_policy.value
-      secret_permissions = ["Get", "List"]
-    }
-  }
 }
 
 # Seed Key Vault secrets (values provided via tfvars or CI secrets)

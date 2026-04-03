@@ -86,9 +86,28 @@ module "container_apps_env" {
   tags                       = local.common_tags
 }
 
-# ── 8. Container Apps ────────────────────────────────────────────────────────
+# ── 8. Key Vault (created before Container Apps — no cycle) ──────────────────
+module "keyvault" {
+  source              = "../modules/keyvault"
+  name                = local.kv_name
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  tags                = local.common_tags
 
-# 8a — User Service (internal)
+  secrets = {
+    "jwt-secret"                   = var.jwt_secret
+    "user-mongodb-uri"             = var.mongodb_uri_users
+    "product-mongodb-uri"          = var.mongodb_uri_products
+    "order-mongodb-uri"            = var.mongodb_uri_orders
+    "notification-mongodb-uri"     = var.mongodb_uri_notifications
+    "servicebus-connection-string" = module.service_bus.default_primary_connection_string
+    "storage-connection-string"    = module.storage.primary_connection_string
+  }
+}
+
+# ── 9. Container Apps ────────────────────────────────────────────────────────
+
+# 9a — User Service (internal)
 module "user_service" {
   source                       = "../modules/container-app"
   name                         = "user-service"
@@ -116,7 +135,7 @@ module "user_service" {
   ]
 }
 
-# 8b — Product Service (internal)
+# 9b — Product Service (internal)
 module "product_service" {
   source                       = "../modules/container-app"
   name                         = "product-service"
@@ -147,7 +166,7 @@ module "product_service" {
   ]
 }
 
-# 8c — Order Service (internal)
+# 9c — Order Service (internal)
 module "order_service" {
   source                       = "../modules/container-app"
   name                         = "order-service"
@@ -179,7 +198,7 @@ module "order_service" {
   ]
 }
 
-# 8d — Notification Service (internal)
+# 9d — Notification Service (internal)
 module "notification_service" {
   source                       = "../modules/container-app"
   name                         = "notification-service"
@@ -210,7 +229,7 @@ module "notification_service" {
   ]
 }
 
-# 8e — API Gateway (external)
+# 9e — API Gateway (external)
 module "api_gateway" {
   source                       = "../modules/container-app"
   name                         = "api-gateway"
@@ -242,7 +261,7 @@ module "api_gateway" {
   ]
 }
 
-# 8f — Frontend (external)
+# 9f — Frontend (external)
 module "frontend" {
   source                       = "../modules/container-app"
   name                         = "frontend"
@@ -267,29 +286,19 @@ module "frontend" {
   ]
 }
 
-# ── 9. Key Vault (created after Container Apps so we can pass identity IDs) ─
-module "keyvault" {
-  source              = "../modules/keyvault"
-  name                = local.kv_name
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  tags                = local.common_tags
-
-  container_app_identity_object_ids = [
-    module.user_service.identity_principal_id,
-    module.product_service.identity_principal_id,
-    module.order_service.identity_principal_id,
-    module.notification_service.identity_principal_id,
-    module.api_gateway.identity_principal_id,
-  ]
-
-  secrets = {
-    "jwt-secret"                   = var.jwt_secret
-    "user-mongodb-uri"             = var.mongodb_uri_users
-    "product-mongodb-uri"          = var.mongodb_uri_products
-    "order-mongodb-uri"            = var.mongodb_uri_orders
-    "notification-mongodb-uri"     = var.mongodb_uri_notifications
-    "servicebus-connection-string" = module.service_bus.default_primary_connection_string
-    "storage-connection-string"    = module.storage.primary_connection_string
+# ── 10. Key Vault Access Policies (created after Container Apps) ──────────────
+resource "azurerm_key_vault_access_policy" "container_apps" {
+  for_each = {
+    user_service         = module.user_service.identity_principal_id
+    product_service      = module.product_service.identity_principal_id
+    order_service        = module.order_service.identity_principal_id
+    notification_service = module.notification_service.identity_principal_id
+    api_gateway          = module.api_gateway.identity_principal_id
   }
+
+  key_vault_id = module.keyvault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = each.value
+
+  secret_permissions = ["Get", "List"]
 }
