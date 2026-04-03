@@ -58,12 +58,12 @@
 
 ```
 .github/workflows/
-├── terraform.yml          # Reusable workflow (plan → apply)
+├── terraform.yml          # Reusable workflow
 ├── deploy-dev.yml         # Dev pipeline
 ├── deploy-qa.yml          # QA pipeline
 ├── deploy-uat.yml         # UAT pipeline
-├── deploy-prod.yml        # Prod pipeline (manual + confirmation)
-└── deploy-demo.yml        # Demo pipeline (manual)
+├── deploy-prod.yml        # Prod pipeline 
+└── deploy-demo.yml        # Demo pipeline 
 
 infra/
 ├── modules/               # Reusable Terraform modules
@@ -93,49 +93,14 @@ infra/
 
 ## Prerequisites
 
-### 1. Terraform State Backend
+### GitHub Secrets
 
-Create an Azure Storage Account for remote state **before** running any pipeline:
+Azure credentials (`ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_SUBSCRIPTION_ID`, `ARM_TENANT_ID`) and state backend configuration are managed at the **organization level** and inherited via the reusable template (`PixelTech-Solutions/Terraform`).
 
-```bash
-# Create state resource group
-az group create -n shopease-tfstate-rg -l eastus
-
-# Create state storage account
-az storage account create \
-  -n shopeasetfstate \
-  -g shopease-tfstate-rg \
-  -l eastus \
-  --sku Standard_LRS
-
-# Create state container
-az storage container create \
-  -n tfstate \
-  --account-name shopeasetfstate
-```
-
-### 2. Azure Service Principal
-
-```bash
-az ad sp create-for-rbac \
-  --name "shopease-terraform-sp" \
-  --role Contributor \
-  --scopes /subscriptions/<SUBSCRIPTION_ID>
-```
-
-### 3. GitHub Secrets
-
-Add these repository secrets in GitHub → Settings → Secrets:
+Add these **repository-level** secrets in GitHub → Settings → Secrets:
 
 | Secret | Description |
 |---|---|
-| `ARM_CLIENT_ID` | Service Principal App ID |
-| `ARM_CLIENT_SECRET` | Service Principal Password |
-| `ARM_SUBSCRIPTION_ID` | Azure Subscription ID |
-| `ARM_TENANT_ID` | Azure AD Tenant ID |
-| `TF_STATE_RG` | State backend RG (`shopease-tfstate-rg`) |
-| `TF_STATE_STORAGE` | State backend SA (`shopeasetfstate`) |
-| `TF_STATE_CONTAINER` | State backend container (`tfstate`) |
 | `TF_VAR_jwt_secret` | JWT signing secret |
 | `TF_VAR_mongodb_uri_users` | MongoDB URI for user-service |
 | `TF_VAR_mongodb_uri_products` | MongoDB URI for product-service |
@@ -157,25 +122,6 @@ Push to `main` with changes in `infra/` — the dev pipeline runs automatically.
 3. Type `yes` in the confirmation field
 4. Click **Run workflow**
 
-### Local Development
-
-```bash
-cd infra/shopease
-
-# Initialize (use dev backend)
-terraform init \
-  -backend-config="resource_group_name=shopease-tfstate-rg" \
-  -backend-config="storage_account_name=shopeasetfstate" \
-  -backend-config="container_name=tfstate" \
-  -backend-config="key=shopease/shopease/dev/terraform.tfstate"
-
-# Plan
-terraform plan -var-file="environments/dev.tfvars"
-
-# Apply
-terraform apply -var-file="environments/dev.tfvars"
-```
-
 ## Security
 
 - **No secrets in code** — all sensitive values injected via GitHub Secrets / `TF_VAR_*`
@@ -188,5 +134,5 @@ terraform apply -var-file="environments/dev.tfvars"
 
 | Repo | Purpose |
 |---|---|
-| [ShopEase (app)](https://github.com/PixelTech-Solutions/Cloud) | Application source code |
+| [ShopEase (app)](https://github.com/PiyumalKK/E_com_micro) | Application source code |
 | [ShopEase_infra](https://github.com/PixelTech-Solutions/ShopEase_infra) | This repo — infrastructure as code |
