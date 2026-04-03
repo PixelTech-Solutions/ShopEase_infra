@@ -17,4 +17,7 @@ locals {
 
   # Internal base URL pattern for Container Apps inter-service communication
   internal_url = "https://%s.internal.${module.container_apps_env.default_domain}"
+
+  # Placeholder image for initial deployment (before app CI pushes real images)
+  placeholder_image = "mcr.microsoft.com/k8se/quickstart:latest"
 }

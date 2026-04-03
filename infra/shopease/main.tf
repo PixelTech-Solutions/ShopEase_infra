@@ -113,7 +113,7 @@ module "user_service" {
   name                         = "user-service"
   resource_group_name          = module.resource_group.name
   container_app_environment_id = module.container_apps_env.id
-  container_image              = "${module.acr.login_server}/user-service:${var.image_tag}"
+  container_image              = var.image_tag == "latest" ? local.placeholder_image : "${module.acr.login_server}/user-service:${var.image_tag}"
   cpu                          = var.container_cpu
   memory                       = var.container_memory
   min_replicas                 = var.min_replicas
@@ -141,7 +141,7 @@ module "product_service" {
   name                         = "product-service"
   resource_group_name          = module.resource_group.name
   container_app_environment_id = module.container_apps_env.id
-  container_image              = "${module.acr.login_server}/product-service:${var.image_tag}"
+  container_image              = var.image_tag == "latest" ? local.placeholder_image : "${module.acr.login_server}/product-service:${var.image_tag}"
   cpu                          = var.container_cpu
   memory                       = var.container_memory
   min_replicas                 = var.min_replicas
@@ -172,7 +172,7 @@ module "order_service" {
   name                         = "order-service"
   resource_group_name          = module.resource_group.name
   container_app_environment_id = module.container_apps_env.id
-  container_image              = "${module.acr.login_server}/order-service:${var.image_tag}"
+  container_image              = var.image_tag == "latest" ? local.placeholder_image : "${module.acr.login_server}/order-service:${var.image_tag}"
   cpu                          = var.container_cpu
   memory                       = var.container_memory
   min_replicas                 = var.min_replicas
@@ -204,7 +204,7 @@ module "notification_service" {
   name                         = "notification-service"
   resource_group_name          = module.resource_group.name
   container_app_environment_id = module.container_apps_env.id
-  container_image              = "${module.acr.login_server}/notification-service:${var.image_tag}"
+  container_image              = var.image_tag == "latest" ? local.placeholder_image : "${module.acr.login_server}/notification-service:${var.image_tag}"
   cpu                          = var.container_cpu
   memory                       = var.container_memory
   min_replicas                 = var.min_replicas
@@ -235,7 +235,7 @@ module "api_gateway" {
   name                         = "api-gateway"
   resource_group_name          = module.resource_group.name
   container_app_environment_id = module.container_apps_env.id
-  container_image              = "${module.acr.login_server}/api-gateway:${var.image_tag}"
+  container_image              = var.image_tag == "latest" ? local.placeholder_image : "${module.acr.login_server}/api-gateway:${var.image_tag}"
   cpu                          = var.container_cpu
   memory                       = var.container_memory
   min_replicas                 = var.min_replicas
@@ -267,7 +267,7 @@ module "frontend" {
   name                         = "frontend"
   resource_group_name          = module.resource_group.name
   container_app_environment_id = module.container_apps_env.id
-  container_image              = "${module.acr.login_server}/frontend:${var.image_tag}"
+  container_image              = var.image_tag == "latest" ? local.placeholder_image : "${module.acr.login_server}/frontend:${var.image_tag}"
   cpu                          = var.container_cpu
   memory                       = var.container_memory
   min_replicas                 = var.min_replicas
