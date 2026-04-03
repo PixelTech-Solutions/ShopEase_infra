@@ -5,8 +5,11 @@ resource "azurerm_container_app" "this" {
   revision_mode                = "Single"
   tags                         = var.tags
 
-  identity {
-    type = var.identity_type
+  dynamic "identity" {
+    for_each = var.identity_type != "None" ? [1] : []
+    content {
+      type = var.identity_type
+    }
   }
 
   # ACR registry credentials
