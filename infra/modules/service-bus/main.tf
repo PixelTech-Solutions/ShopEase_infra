@@ -13,6 +13,6 @@ resource "azurerm_servicebus_queue" "queues" {
   name         = each.value
   namespace_id = azurerm_servicebus_namespace.this.id
 
-  enable_partitioning = false
-  max_delivery_count  = 10
+  partitioning_enabled = false
+  max_delivery_count   = 10
 }
