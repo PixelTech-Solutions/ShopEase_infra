@@ -282,7 +282,7 @@ module "frontend" {
   tags                         = local.common_tags
 
   env_vars = [
-    { name = "API_GATEWAY_URL", value = "https://${module.api_gateway.fqdn}" },
+    { name = "API_GATEWAY_URL", value = format(local.internal_url, "api-gateway") },
   ]
 }
 
