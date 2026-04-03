@@ -13,7 +13,7 @@ min_replicas     = 0
 max_replicas     = 2
 
 # ── SKUs ─────────────────────────────────────────────────────────────────────
-acr_sku       = "Basic"
+acr_sku        = "Basic"
 servicebus_sku = "Basic"
 
 image_tag = "latest"

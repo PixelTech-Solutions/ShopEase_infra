@@ -284,12 +284,12 @@ module "keyvault" {
   ]
 
   secrets = {
-    "jwt-secret"                      = var.jwt_secret
-    "user-mongodb-uri"                = var.mongodb_uri_users
-    "product-mongodb-uri"             = var.mongodb_uri_products
-    "order-mongodb-uri"               = var.mongodb_uri_orders
-    "notification-mongodb-uri"        = var.mongodb_uri_notifications
-    "servicebus-connection-string"    = module.service_bus.default_primary_connection_string
-    "storage-connection-string"       = module.storage.primary_connection_string
+    "jwt-secret"                   = var.jwt_secret
+    "user-mongodb-uri"             = var.mongodb_uri_users
+    "product-mongodb-uri"          = var.mongodb_uri_products
+    "order-mongodb-uri"            = var.mongodb_uri_orders
+    "notification-mongodb-uri"     = var.mongodb_uri_notifications
+    "servicebus-connection-string" = module.service_bus.default_primary_connection_string
+    "storage-connection-string"    = module.storage.primary_connection_string
   }
 }

@@ -1,8 +1,8 @@
 locals {
   # Naming convention:  shopease-{env}-{resource}
   prefix       = "shopease-${var.environment}"
-  acr_name     = "shopease${var.environment}acr"     # ACR: no hyphens allowed
-  storage_name = "shopease${var.environment}stor"     # Storage: no hyphens
+  acr_name     = "shopease${var.environment}acr"  # ACR: no hyphens allowed
+  storage_name = "shopease${var.environment}stor" # Storage: no hyphens
   kv_name      = "${local.prefix}-kv"
   bus_name     = "${local.prefix}-bus"
 
