@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   demo:
-    uses: PixelTech-Solutions/ShopEase_infra/.github/workflows/terraform.yml@main
+    uses: PixelTech-Solutions/Terraform/.github/workflows/terraform.yml@main
     with:
       working_directory: ./infra/shopease
       environment: demo
