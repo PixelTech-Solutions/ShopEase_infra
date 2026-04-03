@@ -1,0 +1,37 @@
+# =============================================================================
+# ShopEase Infrastructure — Production Environment
+# =============================================================================
+
+name: "Deploy ShopEase Infra - Prod"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type 'yes' to confirm production deployment"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-confirm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: github.event.inputs.confirm != 'yes'
+        run: |
+          echo "::error::Production deployment requires confirmation. Input 'yes' to proceed."
+          exit 1
+
+  prod:
+    needs: validate-confirm
+    uses: PixelTech-Solutions/ShopEase_infra/.github/workflows/terraform.yml@main
+    with:
+      working_directory: ./infra/shopease
+      environment: prod
+      project_name: shopease
+      service_name: shopease
+    secrets: inherit

@@ -1,0 +1,25 @@
+# =============================================================================
+# ShopEase Infrastructure — UAT Environment
+# =============================================================================
+
+name: "Deploy ShopEase Infra - UAT"
+
+on:
+  push:
+    branches: [release/**]
+    paths: ["infra/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  uat:
+    uses: PixelTech-Solutions/ShopEase_infra/.github/workflows/terraform.yml@main
+    with:
+      working_directory: ./infra/shopease
+      environment: uat
+      project_name: shopease
+      service_name: shopease
+    secrets: inherit

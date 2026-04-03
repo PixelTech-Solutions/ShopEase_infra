@@ -1,0 +1,31 @@
+# =============================================================================
+# ShopEase Infrastructure — Dev Environment
+# =============================================================================
+# State key:  shopease/shopease/dev/terraform.tfstate
+# Var file:   environments/dev.tfvars
+# =============================================================================
+
+name: "Deploy ShopEase Infra - Dev"
+
+on:
+  push:
+    branches: [main]
+    paths: ["infra/**"]
+  pull_request:
+    branches: [main]
+    paths: ["infra/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dev:
+    uses: PixelTech-Solutions/ShopEase_infra/.github/workflows/terraform.yml@main
+    with:
+      working_directory: ./infra/shopease
+      environment: dev
+      project_name: shopease
+      service_name: shopease
+    secrets: inherit

@@ -1,0 +1,25 @@
+# =============================================================================
+# ShopEase Infrastructure — QA Environment
+# =============================================================================
+
+name: "Deploy ShopEase Infra - QA"
+
+on:
+  push:
+    branches: [release/**]
+    paths: ["infra/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  qa:
+    uses: PixelTech-Solutions/ShopEase_infra/.github/workflows/terraform.yml@main
+    with:
+      working_directory: ./infra/shopease
+      environment: qa
+      project_name: shopease
+      service_name: shopease
+    secrets: inherit

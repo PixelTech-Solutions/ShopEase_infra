@@ -1,0 +1,22 @@
+# =============================================================================
+# ShopEase Infrastructure — Demo Environment
+# =============================================================================
+
+name: "Deploy ShopEase Infra - Demo"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  demo:
+    uses: PixelTech-Solutions/ShopEase_infra/.github/workflows/terraform.yml@main
+    with:
+      working_directory: ./infra/shopease
+      environment: demo
+      project_name: shopease
+      service_name: shopease
+    secrets: inherit

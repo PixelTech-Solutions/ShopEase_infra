@@ -1,0 +1,186 @@
+# =============================================================================
+# Reusable Terraform Workflow — The Platform
+# =============================================================================
+# Called by per-environment deploy-*.yml workflows.
+# Handles: init → validate → plan → apply with Azure backend state.
+#
+# State key convention:  {project_name}/{service_name}/{environment}/terraform.tfstate
+# Var file convention:   environments/{environment}.tfvars
+# =============================================================================
+
+name: "Terraform — Reusable"
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: "Path to the Terraform root module (relative to repo root)"
+        required: true
+        type: string
+      environment:
+        description: "Target environment (dev | qa | uat | prod | demo)"
+        required: true
+        type: string
+      project_name:
+        description: "Logical project name used in state key"
+        required: true
+        type: string
+      service_name:
+        description: "Logical service name used in state key"
+        required: true
+        type: string
+      terraform_version:
+        description: "Terraform CLI version"
+        required: false
+        type: string
+        default: "1.7.5"
+      destroy:
+        description: "Set to true to run terraform destroy"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  TF_STATE_RG: ${{ secrets.TF_STATE_RG }}
+  TF_STATE_STORAGE: ${{ secrets.TF_STATE_STORAGE }}
+  TF_STATE_CONTAINER: ${{ secrets.TF_STATE_CONTAINER }}
+
+jobs:
+  # ─── Plan ───────────────────────────────────────────────────────────
+  plan:
+    name: "Plan — ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    outputs:
+      plan_exit_code: ${{ steps.plan.outputs.exitcode }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ env.TF_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ env.TF_STATE_STORAGE }}" \
+            -backend-config="container_name=${{ env.TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ inputs.project_name }}/${{ inputs.service_name }}/${{ inputs.environment }}/terraform.tfstate"
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="environments/${{ inputs.environment }}.tfvars" \
+            -out=tfplan \
+            -detailed-exitcode \
+            -no-color
+        continue-on-error: true
+
+      - name: Upload Plan Artifact
+        if: steps.plan.outputs.exitcode == 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: ${{ inputs.working_directory }}/tfplan
+          retention-days: 5
+
+      - name: Comment PR with Plan
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `### Terraform Plan — \`${{ inputs.environment }}\`
+            | Step | Status |
+            |------|--------|
+            | Init | ${{ steps.init.outcome }} |
+            | Validate | ${{ steps.validate.outcome }} |
+            | Plan | ${{ steps.plan.outcome }} |
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`
+            ${{ steps.plan.outputs.stdout || 'No changes' }}
+            \`\`\`
+
+            </details>
+
+            *Pushed by @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Fail on Plan Error
+        if: steps.plan.outputs.exitcode == 1
+        run: exit 1
+
+  # ─── Apply ──────────────────────────────────────────────────────────
+  apply:
+    name: "Apply — ${{ inputs.environment }}"
+    needs: plan
+    if: |
+      needs.plan.outputs.plan_exit_code == 2 &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: ${{ inputs.working_directory }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ env.TF_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ env.TF_STATE_STORAGE }}" \
+            -backend-config="container_name=${{ env.TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ inputs.project_name }}/${{ inputs.service_name }}/${{ inputs.environment }}/terraform.tfstate"
+
+      - name: Terraform Apply
+        if: inputs.destroy == false
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Destroy
+        if: inputs.destroy == true
+        run: |
+          terraform destroy \
+            -var-file="environments/${{ inputs.environment }}.tfvars" \
+            -auto-approve
