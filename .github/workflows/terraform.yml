@@ -52,6 +52,11 @@ env:
   TF_STATE_RG: ${{ secrets.TF_STATE_RG }}
   TF_STATE_STORAGE: ${{ secrets.TF_STATE_STORAGE }}
   TF_STATE_CONTAINER: ${{ secrets.TF_STATE_CONTAINER }}
+  TF_VAR_jwt_secret: ${{ secrets.TF_VAR_jwt_secret }}
+  TF_VAR_mongodb_uri_users: ${{ secrets.TF_VAR_mongodb_uri_users }}
+  TF_VAR_mongodb_uri_products: ${{ secrets.TF_VAR_mongodb_uri_products }}
+  TF_VAR_mongodb_uri_orders: ${{ secrets.TF_VAR_mongodb_uri_orders }}
+  TF_VAR_mongodb_uri_notifications: ${{ secrets.TF_VAR_mongodb_uri_notifications }}
 
 jobs:
   # ─── Plan ───────────────────────────────────────────────────────────

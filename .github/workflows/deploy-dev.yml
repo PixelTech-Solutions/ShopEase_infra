@@ -28,4 +28,10 @@ jobs:
       environment: dev
       project_name: shopease
       service_name: shopease
+      additional_args: >-
+        -var="jwt_secret=${{ secrets.TF_VAR_jwt_secret }}"
+        -var="mongodb_uri_users=${{ secrets.TF_VAR_mongodb_uri_users }}"
+        -var="mongodb_uri_products=${{ secrets.TF_VAR_mongodb_uri_products }}"
+        -var="mongodb_uri_orders=${{ secrets.TF_VAR_mongodb_uri_orders }}"
+        -var="mongodb_uri_notifications=${{ secrets.TF_VAR_mongodb_uri_notifications }}"
     secrets: inherit
