@@ -11,8 +11,8 @@ project_name = "shopease"
 # ── Compute sizing (minimal for dev) ─────────────────────────────────────────
 container_cpu    = 0.25
 container_memory = "0.5Gi"
-min_replicas     = 0
-max_replicas     = 1
+min_replicas     = 1
+max_replicas     = 2
 
 # ── SKUs ─────────────────────────────────────────────────────────────────────
 acr_sku        = "Basic"
