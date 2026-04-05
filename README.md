@@ -44,15 +44,6 @@
 | Container Apps Env | `shopease-{env}-env` | Managed serverless container platform |
 | Container Apps ×6 | `{service-name}` | Microservices (frontend, api-gateway, user/product/order/notification-service) |
 
-## Environments
-
-| Environment | Triggered By | Replicas | CPU | Memory |
-|---|---|---|---|---|
-| `dev` | Push to `main` | 0–1 | 0.25 | 0.5Gi |
-| `qa` | Push to `release/**` | 0–2 | 0.25 | 0.5Gi |
-| `uat` | Push to `release/**` | 1–3 | 0.5 | 1Gi |
-| `prod` | Manual (requires confirmation) | 1–5 | 0.5 | 1Gi |
-| `demo` | Manual | 0–1 | 0.25 | 0.5Gi |
 
 ## Repository Structure
 
